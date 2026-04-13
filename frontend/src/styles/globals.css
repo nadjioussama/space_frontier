@@ -1,0 +1,109 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    color-scheme: dark;
+    /* Phase 6 CSS custom properties for runtime theming (§16) */
+    --color-panel-bg: rgba(27, 39, 53, 0.85);
+    --color-panel-border: rgba(46, 134, 171, 0.3);
+    --color-overlay: rgba(11, 13, 23, 0.7);
+    --color-glow-blue: rgba(46, 134, 171, 0.4);
+    --color-glow-gold: rgba(240, 165, 0, 0.4);
+  }
+  html, body { height: 100%; }
+  body {
+    @apply bg-space-900 text-space-star font-body antialiased;
+    background-image:
+      radial-gradient(1200px 600px at 80% -10%, rgba(46,134,171,0.08), transparent 60%),
+      radial-gradient(900px  500px at  0% 100%, rgba(46,204,113,0.06), transparent 55%);
+  }
+  h1, h2, h3 { @apply font-display tracking-wide; }
+
+  /* Age-adaptive base font sizes — applied via data-age on <html> */
+  html[data-age="6-8"] { font-size: 18px; }
+  html[data-age="9-11"] { font-size: 16px; }
+  html[data-age="12-14"] { font-size: 15px; }
+}
+
+@layer components {
+  /* Glassmorphism panel (§18.2) */
+  .glass-panel {
+    @apply rounded-xl border border-white/10;
+    background: var(--color-panel-bg);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+
+  /* Interactive button base (§19.2) */
+  .btn-space {
+    @apply px-4 py-2 rounded-xl font-display tracking-widest uppercase text-sm
+           transition-all duration-200 ease-out;
+  }
+  .btn-space:hover {
+    @apply scale-[1.03];
+    box-shadow: 0 0 16px var(--color-glow-blue);
+  }
+  .btn-space:active {
+    @apply scale-[0.97];
+  }
+
+  .btn-primary {
+    @apply btn-space bg-space-accent text-space-900;
+  }
+  .btn-primary:hover {
+    @apply brightness-110;
+  }
+
+  .btn-gold {
+    @apply btn-space bg-space-gold text-space-900;
+  }
+  .btn-gold:hover {
+    box-shadow: 0 0 16px var(--color-glow-gold);
+  }
+
+  /* Card with glow border (§18.2) */
+  .card-glow {
+    @apply glass-panel p-4;
+    border-color: var(--color-panel-border);
+  }
+  .card-glow:hover {
+    border-color: rgba(46, 134, 171, 0.5);
+    box-shadow: 0 0 12px var(--color-glow-blue);
+  }
+
+  /* Skeleton loading with star twinkle (§19.2) */
+  .skeleton {
+    @apply bg-white/5 rounded animate-pulse;
+  }
+
+  /* Correct/wrong answer flash (§19.2) */
+  .flash-correct {
+    animation: flash-green 0.5s ease-out;
+  }
+  .flash-wrong {
+    animation: shake 0.4s ease-in-out;
+  }
+}
+
+@keyframes flash-green {
+  0% { background-color: rgba(46, 204, 113, 0.4); }
+  100% { background-color: transparent; }
+}
+
+/* Accessibility: respect reduced motion. PLAN §19.5 */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Focus visible for keyboard navigation */
+:focus-visible {
+  outline: 2px solid #2E86AB;
+  outline-offset: 2px;
+}
