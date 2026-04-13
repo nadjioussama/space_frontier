@@ -1,0 +1,10 @@
+name               = "nse-staging"
+domain             = "staging.nasaexplorer.example"
+monthly_budget     = 120
+rds_instance_class = "db.t3.micro"
+rds_multi_az       = false
+rds_create_replica = false
+redis_node_type    = "cache.t3.micro"
+web_min            = 1
+web_max            = 3
+worker_spot        = true

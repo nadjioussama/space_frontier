@@ -1,0 +1,91 @@
+# Build -> ECR -> staging apply -> integration test -> manual gate -> prod apply -> smoke -> auto-rollback.
+# PLAN §11.8.
+name: deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  id-token: write   # OIDC -> AWS
+  contents: read
+
+env:
+  AWS_REGION: us-east-1
+  ECR_WEB: nse-web
+  ECR_FRONTEND: nse-frontend
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.meta.outputs.tag }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: meta
+        run: echo "tag=${GITHUB_SHA::12}" >> "$GITHUB_OUTPUT"
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+      - uses: aws-actions/amazon-ecr-login@v2
+        id: ecr
+      - name: Build & push backend
+        run: |
+          docker build -t "${{ steps.ecr.outputs.registry }}/${ECR_WEB}:${{ steps.meta.outputs.tag }}" backend
+          docker push     "${{ steps.ecr.outputs.registry }}/${ECR_WEB}:${{ steps.meta.outputs.tag }}"
+      - name: Build & push frontend
+        run: |
+          docker build -t "${{ steps.ecr.outputs.registry }}/${ECR_FRONTEND}:${{ steps.meta.outputs.tag }}" frontend
+          docker push     "${{ steps.ecr.outputs.registry }}/${ECR_FRONTEND}:${{ steps.meta.outputs.tag }}"
+
+  deploy-staging:
+    needs: build
+    runs-on: ubuntu-latest
+    environment: staging
+    steps:
+      - uses: actions/checkout@v4
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+      - uses: hashicorp/setup-terraform@v3
+      - run: terraform -chdir=infra/environments/staging init
+      - run: terraform -chdir=infra/environments/staging apply -auto-approve -var "image_tag=${{ needs.build.outputs.tag }}" -var "cloudflare_zone_id=${{ secrets.CLOUDFLARE_ZONE_ID }}"
+        env: { CLOUDFLARE_API_TOKEN: "${{ secrets.CLOUDFLARE_API_TOKEN }}" }
+      - name: Integration test
+        run: |
+          for i in $(seq 1 30); do
+            curl -fsS "https://staging.nasaexplorer.example/health/" && exit 0
+            sleep 10
+          done
+          exit 1
+
+  deploy-prod:
+    needs: [build, deploy-staging]
+    runs-on: ubuntu-latest
+    environment: production   # GitHub required-reviewers => manual approval gate
+    steps:
+      - uses: actions/checkout@v4
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+      - uses: hashicorp/setup-terraform@v3
+      - run: terraform -chdir=infra/environments/prod init
+      - id: prev
+        run: echo "td=$(aws ecs describe-services --cluster nse-prod --services nse-prod-web --query 'services[0].taskDefinition' --output text)" >> "$GITHUB_OUTPUT"
+      - run: terraform -chdir=infra/environments/prod apply -auto-approve -var "image_tag=${{ needs.build.outputs.tag }}" -var "cloudflare_zone_id=${{ secrets.CLOUDFLARE_ZONE_ID }}"
+        env: { CLOUDFLARE_API_TOKEN: "${{ secrets.CLOUDFLARE_API_TOKEN }}" }
+      - name: Smoke test
+        id: smoke
+        run: |
+          aws ecs wait services-stable --cluster nse-prod --services nse-prod-web nse-prod-frontend
+          curl -fsS "https://play.nasaexplorer.example/health/"
+      - name: Rollback on failure
+        if: failure() && steps.prev.outputs.td != ''
+        run: |
+          for s in web frontend worker beat; do
+            aws ecs update-service --cluster nse-prod --service "nse-prod-$s" --task-definition "${{ steps.prev.outputs.td }}" || true
+          done

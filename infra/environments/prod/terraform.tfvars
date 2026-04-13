@@ -1,0 +1,10 @@
+name               = "nse-prod"
+domain             = "play.nasaexplorer.example"
+monthly_budget     = 600
+rds_instance_class = "db.t3.medium"
+rds_multi_az       = true
+rds_create_replica = true
+redis_node_type    = "cache.t3.small"
+web_min            = 2
+web_max            = 20
+worker_spot        = true
