@@ -13,7 +13,7 @@ const config: Config.InitialOptions = {
     "^@/(.*)$": "<rootDir>/src/$1",
     "\\.(css|less|scss|sass)$": "<rootDir>/src/__mocks__/styleMock.ts",
   },
-  setupFilesAfterSetup: ["<rootDir>/src/setupTests.ts"],
+  setupFilesAfterEnv: ["<rootDir>/src/setupTests.ts"],
   transformIgnorePatterns: ["/node_modules/(?!(idb-keyval)/)"],
   testMatch: ["**/__tests__/**/*.test.ts?(x)"],
   collectCoverageFrom: [

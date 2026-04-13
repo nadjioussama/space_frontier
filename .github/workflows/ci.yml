@@ -38,7 +38,11 @@ jobs:
         with: { node-version: "20" }
       - run: npm ci
         working-directory: frontend
-      - run: npm run lint && npx tsc --noEmit
+      - run: npm run lint
+        working-directory: frontend
+      - run: npm run typecheck
+        working-directory: frontend
+      - run: npm test -- --ci --passWithNoTests
         working-directory: frontend
 
   terraform-plan:

@@ -1,5 +1,17 @@
 # Build -> ECR -> staging apply -> integration test -> manual gate -> prod apply -> smoke -> auto-rollback.
 # PLAN §11.8.
+#
+# Required GitHub Secrets:
+#   AWS_DEPLOY_ROLE_ARN   — IAM role ARN for OIDC-based AWS access
+#   CLOUDFLARE_ZONE_ID    — Cloudflare zone ID for CDN cache purge
+#   CLOUDFLARE_API_TOKEN  — Cloudflare API token with zone:purge permissions
+#
+# Required GitHub Environments:
+#   staging    — auto-deploys on merge to main
+#   production — requires manual approval (configure required reviewers in GitHub)
+#
+# NOTE: Replace "staging.nasaexplorer.example" and "play.nasaexplorer.example"
+#       with your actual domains before enabling this workflow.
 name: deploy
 
 on:

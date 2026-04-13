@@ -3,7 +3,7 @@ import dynamic from "next/dynamic";
 import { motion, AnimatePresence } from "framer-motion";
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import type { MissionDetail } from "@/lib/api";
+import type { MissionDetail, AttemptResult } from "@/lib/api";
 import { apiFetch } from "@/lib/api";
 import { QuizPanel } from "./Quiz";
 import { usePlayer } from "@/store/player";
@@ -32,11 +32,7 @@ export function MissionViewport({ mission }: Props) {
   async function handleSubmit(answers: Array<{ quiz_id: number; answer: string }>) {
     setState({ phase: "submitting" });
     try {
-      const res = await apiFetch<{
-        xp_earned: number;
-        results: Array<{ correct: boolean }>;
-        progress: { dda?: { level: number; accuracy: number } };
-      }>(
+      const res = await apiFetch<AttemptResult>(
         `/api/v1/missions/${mission.slug}/attempt/`,
         {
           method: "POST",
@@ -49,7 +45,7 @@ export function MissionViewport({ mission }: Props) {
       incrementStreak();
 
       // Update DDA level from server response
-      if (res.progress.dda) {
+      if (res.progress?.dda) {
         setDDALevel(res.progress.dda.level);
       }
 
@@ -67,7 +63,7 @@ export function MissionViewport({ mission }: Props) {
         xp: res.xp_earned,
         correct,
         total: res.results.length,
-        ddaLevel: res.progress.dda?.level,
+        ddaLevel: res.progress?.dda?.level,
       });
     } catch (err) {
       const xp = Math.round(mission.xp_reward * 0.5);
