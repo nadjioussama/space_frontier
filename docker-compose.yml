@@ -1,0 +1,83 @@
+# Local dev stack for the walking skeleton.
+# Matches the topology in PLAN.md §5 in miniature (no CDN, no S3 — local storage).
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  web:
+    build: ./backend
+    command: python manage.py runserver 0.0.0.0:8000
+    env_file: .env
+    volumes:
+      - ./backend:/app
+      - media:/app/media
+    ports:
+      - "8000:8000"
+    depends_on:
+      db: { condition: service_healthy }
+      redis: { condition: service_healthy }
+
+  worker:
+    build: ./backend
+    command: celery -A config worker -l INFO
+    env_file: .env
+    volumes:
+      - ./backend:/app
+      - media:/app/media
+    depends_on:
+      - db
+      - redis
+
+  beat:
+    build: ./backend
+    command: celery -A config beat -l INFO
+    env_file: .env
+    volumes:
+      - ./backend:/app
+    depends_on:
+      - db
+      - redis
+
+  frontend:
+    build: ./frontend
+    command: npm run dev
+    env_file: .env
+    environment:
+      # Inside the container, the browser-origin of the API is still localhost
+      NEXT_PUBLIC_API_BASE: http://localhost:8000
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+      - /app/.next
+    ports:
+      - "3000:3000"
+    depends_on:
+      - web
+
+volumes:
+  pgdata:
+  media:
