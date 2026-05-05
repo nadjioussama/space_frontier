@@ -14,6 +14,15 @@ const customJestConfig = {
     "^@/(.*)$": "<rootDir>/src/$1",
   },
   transformIgnorePatterns: ["/node_modules/(?!(idb-keyval)/)"],
+  collectCoverage: true,
+  coverageDirectory: "coverage",
+  coverageReporters: ["text", "lcov", "json", "html"],
+  collectCoverageFrom: [
+    "src/**/*.{ts,tsx}",
+    "!src/**/*.d.ts",
+    "!src/**/__tests__/**",
+    "!src/setupTests.tsx",
+  ],
 };
 
 // createJestConfig is exported this way to ensure that next/jest can load the Next.js config which is async
