@@ -43,7 +43,8 @@ class EPICTransformer:
             identifier = raw.get("identifier", "")
             image_name = raw.get("image", "")
             date_str = raw.get("date", "")[:10]
-            dt = datetime.fromisoformat(raw.get("date", "2000-01-01T00:00:00"))
+            from django.utils.timezone import make_aware
+            dt = make_aware(datetime.fromisoformat(raw.get("date", "2000-01-01T00:00:00")))
             full_url = self._client.image_url(image_name, date_str)
 
             coords = raw.get("centroid_coordinates", {})

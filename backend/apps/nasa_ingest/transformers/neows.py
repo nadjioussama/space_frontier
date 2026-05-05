@@ -80,10 +80,11 @@ class NeoWsTransformer:
         for a in approaches:
             vel = float(a.get("relative_velocity", {}).get("kilometers_per_hour", 0))
             miss = float(a.get("miss_distance", {}).get("kilometers", 0))
-            approach_dt = datetime.fromisoformat(
+            from django.utils.timezone import make_aware
+            approach_dt = make_aware(datetime.fromisoformat(
                 a.get("close_approach_date_full", a.get("close_approach_date", "2000-01-01"))
                 .replace(" ", "T")
-            )
+            ))
             NEOApproach.objects.update_or_create(
                 neo=obj,
                 approach_date=approach_dt,
