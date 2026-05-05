@@ -17,8 +17,8 @@ function InspectQueryClient() {
   const defaults = client.getDefaultOptions().queries;
   return (
     <div>
-      <span data-testid="stale-time">{defaults?.staleTime}</span>
-      <span data-testid="gc-time">{defaults?.gcTime}</span>
+      <span data-testid="stale-time">{String(defaults?.staleTime)}</span>
+      <span data-testid="gc-time">{String(defaults?.gcTime)}</span>
       <span data-testid="retry">{String(defaults?.retry)}</span>
       <span data-testid="refetch-focus">{String(defaults?.refetchOnWindowFocus)}</span>
     </div>

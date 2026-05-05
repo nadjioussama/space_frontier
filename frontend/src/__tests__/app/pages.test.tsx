@@ -14,8 +14,10 @@ jest.mock("next/navigation", () => ({
 
 // Mock next/link
 jest.mock("next/link", () => {
-  return ({ children, href, ...rest }: any) =>
+  const MockLink = ({ children, href, ...rest }: any) =>
     React.createElement("a", { href, ...rest }, children);
+  MockLink.displayName = "MockLink";
+  return MockLink;
 });
 
 // Mock framer-motion
@@ -45,8 +47,10 @@ jest.mock("@/lib/queries", () => ({
 
 function createWrapper() {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
-  return ({ children }: { children: React.ReactNode }) =>
+  const Wrapper = ({ children }: { children: React.ReactNode }) =>
     React.createElement(QueryClientProvider, { client }, children);
+  Wrapper.displayName = "QueryClientWrapper";
+  return Wrapper;
 }
 
 describe("HomePage", () => {

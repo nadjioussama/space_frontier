@@ -8,7 +8,7 @@ const initialState = {
   totalXp: 0,
   rank: "Cadet",
   completedMissionSlugs: [] as string[],
-  ageGroup: "9-11",
+  ageGroup: "9-11" as const,
   ddaLevel: 3,
   streak: 0,
   soundMuted: false,
