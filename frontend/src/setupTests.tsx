@@ -18,10 +18,11 @@ jest.mock("next/dynamic", () => ({
   },
 }));
 
+import React from "react";
 // Mock next/link
 jest.mock("next/link", () => ({
   __esModule: true,
-  default: ({ children, href, ...props }: any) => <a href={href} {...props}>{children}</a>,
+  default: ({ children, href, ...props }: any) => React.createElement("a", { href, ...props }, children),
 }));
 
 // Mock idb-keyval

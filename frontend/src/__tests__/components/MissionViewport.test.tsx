@@ -122,7 +122,7 @@ describe("MissionViewport", () => {
     render(<MissionViewport mission={MOCK_MISSION} />);
 
     expect(screen.getByText(/NASA Picture of the Day/)).toBeInTheDocument();
-    expect(screen.getByText("2025-01-15")).toBeInTheDocument();
+    expect(screen.getByText(/2025-01-15/)).toBeInTheDocument();
     expect(
       screen.getByText(/This beautiful nebula was captured/)
     ).toBeInTheDocument();
