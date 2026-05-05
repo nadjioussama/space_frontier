@@ -4,22 +4,6 @@ import { ConstellationView } from "@/components/Constellation";
 import { useConstellations } from "@/lib/queries";
 import type { ConstellationData } from "@/lib/api";
 
-jest.mock("framer-motion", () => ({
-  motion: {
-    div: ({ children, ...props }: any) => <div {...props}>{children}</div>,
-    span: ({ children, ...props }: any) => <span {...props}>{children}</span>,
-    a: ({ children, ...props }: any) => <a {...props}>{children}</a>,
-    button: ({ children, ...props }: any) => <button {...props}>{children}</button>,
-    li: ({ children, ...props }: any) => <li {...props}>{children}</li>,
-    svg: ({ children, ...props }: any) => <svg {...props}>{children}</svg>,
-    circle: ({ children, ...props }: any) => <circle {...props}>{children}</circle>,
-    path: (props: any) => <path {...props} />,
-    line: (props: any) => <line {...props} />,
-    g: ({ children, ...props }: any) => <g {...props}>{children}</g>,
-  },
-  AnimatePresence: ({ children }: any) => <>{children}</>,
-  useAnimation: () => ({ start: jest.fn(), set: jest.fn() }),
-}));
 
 jest.mock("@/lib/queries", () => ({
   useConstellations: jest.fn(),
