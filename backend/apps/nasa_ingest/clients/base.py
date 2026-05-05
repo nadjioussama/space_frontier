@@ -9,7 +9,7 @@ Every NASA call goes through here. Guarantees:
 from __future__ import annotations
 
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 
 import requests
 from django.conf import settings
@@ -30,7 +30,7 @@ class NASAClient:
     TIMEOUT_SECONDS = 15
 
     def _quota_key(self) -> str:
-        return f"nasa:quota:{datetime.utcnow():%Y%m%d%H}"
+        return f"nasa:quota:{datetime.now(timezone.utc):%Y%m%d%H}"
 
     def _check_quota(self) -> int:
         key = self._quota_key()

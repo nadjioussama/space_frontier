@@ -21,14 +21,6 @@ jest.mock("next/link", () => {
 });
 
 // Mock framer-motion
-jest.mock("framer-motion", () => ({
-  motion: {
-    header: (props: any) => React.createElement("header", props),
-    h1: (props: any) => React.createElement("h1", props),
-    div: (props: any) => React.createElement("div", props),
-  },
-  AnimatePresence: ({ children }: any) => children,
-}));
 
 // Mock all complex child components
 jest.mock("@/components/SpaceMap", () => ({ SpaceMap: () => <div data-testid="space-map" /> }));
