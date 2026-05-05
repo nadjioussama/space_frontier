@@ -1,6 +1,25 @@
 import "../styles/globals.css";
 import type { Metadata, Viewport } from "next";
+import { Nunito, Orbitron, JetBrains_Mono } from "next/font/google";
 import { Providers } from "./providers";
+
+const nunito = Nunito({
+  subsets: ["latin"],
+  variable: "--font-nunito",
+  display: "swap",
+});
+
+const orbitron = Orbitron({
+  subsets: ["latin"],
+  variable: "--font-orbitron",
+  display: "swap",
+});
+
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ["latin"],
+  variable: "--font-jetbrains-mono",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: "NASA Space Explorer",
@@ -16,17 +35,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" data-age="9-11">
-      <head>
-        {/* PLAN §17: Orbitron (display), Nunito (body), JetBrains Mono (data).
-            Production will self-host; dev uses Google Fonts CDN. */}
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
-        <link
-          rel="stylesheet"
-          href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&family=Orbitron:wght@500;700&family=JetBrains+Mono:wght@400;500&display=swap"
-        />
-      </head>
+    <html lang="en" data-age="9-11" className={`${nunito.variable} ${orbitron.variable} ${jetbrainsMono.variable}`}>
       <body>
         <Providers>{children}</Providers>
       </body>

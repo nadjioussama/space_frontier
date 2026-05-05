@@ -27,9 +27,9 @@ const config: Config = {
         },
       },
       fontFamily: {
-        display: ["Orbitron", "system-ui", "sans-serif"],
-        body: ["Nunito", "system-ui", "sans-serif"],
-        mono: ["'JetBrains Mono'", "ui-monospace", "monospace"],
+        display: ["var(--font-orbitron)", "system-ui", "sans-serif"],
+        body: ["var(--font-nunito)", "system-ui", "sans-serif"],
+        mono: ["var(--font-jetbrains-mono)", "ui-monospace", "monospace"],
       },
       // Phase 6: animation system tokens (§19)
       keyframes: {
