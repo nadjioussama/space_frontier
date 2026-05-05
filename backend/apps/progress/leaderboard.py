@@ -11,7 +11,7 @@ No PvP; all competition is vs. personal best or collective goals.
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Optional
 
 from django.conf import settings
@@ -63,7 +63,7 @@ def get_player_rank(player_id: int, key: str = WEEKLY_KEY) -> Optional[dict]:
 def reset_weekly() -> int:
     """Archive and clear the weekly board. Returns number of entries cleared."""
     # Archive key for historical reference
-    archive_key = f"leaderboard:archive:{datetime.utcnow().strftime('%Y-W%W')}"
+    archive_key = f"leaderboard:archive:{datetime.now(timezone.utc).strftime('%Y-W%W')}"
     count = _redis.zcard(WEEKLY_KEY)
     if count > 0:
         _redis.copy(WEEKLY_KEY, archive_key)
