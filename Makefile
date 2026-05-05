@@ -22,16 +22,14 @@
 # Tests:
 #   make test                    Run backend + frontend tests (via Compose)
 #   make test-backend            Backend pytest (via Compose)
-#   make test-backend-coverage   Backend pytest with coverage report
 #   make test-backend-local      Backend pytest locally (needs Postgres + Redis)
 #   make test-frontend           Frontend Jest in CI mode (via Compose)
 #   make test-frontend-watch     Frontend Jest in watch mode
-#   make test-frontend-coverage  Frontend Jest with coverage report
 #   make test-frontend-local     Frontend Jest locally (needs npm install)
 #   make typecheck               TypeScript type-check (via Compose)
 #   make test-integration        Integration tests (Dockerfiles, env, CI)
 #   make test-infra              Terraform validation + security checks
-#   make test-all                Everything above
+#   make test-all                Everything above (Backend + Frontend + Integration + Infra)
 #
 # Utilities:
 #   make shell             Open a Django shell
@@ -105,7 +103,7 @@ restart: ## Restart all Compose services
 	$(COMPOSE) restart
 
 .PHONY: logs
-logs: ## Follow logs for all Compose services
+logs: ## Follow logs for all services
 	$(COMPOSE) logs -f
 
 .PHONY: logs-web
@@ -141,33 +139,25 @@ test: test-backend test-frontend ## Run backend + frontend tests
 
 # -- Backend ------------------------------------------------------------------
 .PHONY: test-backend
-test-backend: ## Run backend pytest suite (via Compose)
-	$(COMPOSE) exec web pytest
-
-.PHONY: test-backend-coverage
-test-backend-coverage: ## Run backend tests with coverage report
-	$(COMPOSE) exec web pytest
+test-backend: ## Run backend pytest suite with coverage (via Compose)
+	$(COMPOSE) exec web pytest --cov
 
 .PHONY: test-backend-local
 test-backend-local: ## Run backend tests locally (requires local Postgres + Redis)
-	cd backend && DJANGO_SETTINGS_MODULE=config.settings.test pytest
+	cd backend && DJANGO_SETTINGS_MODULE=config.settings.test pytest --cov
 
 # -- Frontend -----------------------------------------------------------------
 .PHONY: test-frontend
-test-frontend: ## Run frontend Jest tests in CI mode (via Compose)
-	$(COMPOSE) exec frontend npm test -- --watchAll=false
+test-frontend: ## Run frontend Jest tests with coverage (via Compose)
+	$(COMPOSE) exec frontend npm test -- --coverage --watchAll=false
 
 .PHONY: test-frontend-watch
 test-frontend-watch: ## Run frontend Jest tests in watch mode (via Compose)
 	$(COMPOSE) exec frontend npm run test:watch
 
-.PHONY: test-frontend-coverage
-test-frontend-coverage: ## Run frontend Jest tests with coverage report
-	$(COMPOSE) exec frontend npm test -- --coverage --watchAll=false
-
 .PHONY: test-frontend-local
 test-frontend-local: ## Run frontend Jest tests locally (requires npm install)
-	cd frontend && npm test -- --watchAll=false
+	cd frontend && npm test -- --coverage --watchAll=false
 
 .PHONY: typecheck
 typecheck: ## Run TypeScript type-checking on the frontend (via Compose)
@@ -185,25 +175,18 @@ test-infra: ## Run Terraform validation + security checks
 	bash infra/tests/test_security.sh
 
 .PHONY: test-integration
-test-integration: ## Run integration tests (Compose, Dockerfiles, env, CI workflows)
-	python3 -m pytest tests/
-
-.PHONY: test-integration-coverage
-test-integration-coverage: ## Run integration tests with coverage report
-	cd tests && python3 -m pytest
+test-integration: ## Run integration tests with coverage (Compose, Dockerfiles, env, CI workflows)
+	cd tests && python3 -m pytest --cov=.
 
 .PHONY: test-all
-test-all: test-backend test-frontend test-integration ## Run every test suite (backend + frontend + integration)
-
-.PHONY: coverage
-coverage: test-backend-coverage test-frontend-coverage test-integration-coverage ## Run all tests and generate coverage reports
+test-all: test-backend test-frontend test-integration test-infra ## Run ALL tests + coverage + infra validation
 	@echo ""
 	@echo "======================================================================"
-	@echo "                      COVERAGE REPORTS SUMMARY                        "
+	@echo "                      PROJECT STATUS: ALL GREEN                       "
 	@echo "======================================================================"
-	@echo "Backend:     backend/htmlcov/index.html"
-	@echo "Frontend:    frontend/coverage/lcov-report/index.html"
-	@echo "Integration: tests/htmlcov/index.html"
+	@echo "Backend:     Check console for coverage report"
+	@echo "Frontend:    Check console for coverage report"
+	@echo "Integration: Check console for coverage report"
 	@echo "======================================================================"
 
 # ── Utilities ─────────────────────────────────────────────────────────────────
