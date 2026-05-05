@@ -145,8 +145,8 @@ test-backend: ## Run backend pytest suite (via Compose)
 	$(COMPOSE) exec web pytest
 
 .PHONY: test-backend-coverage
-test-backend-coverage: ## Run backend tests with coverage report (term + htmlcov/)
-	$(COMPOSE) exec web pytest --cov=. --cov-report=term-missing --cov-report=html
+test-backend-coverage: ## Run backend tests with coverage report
+	$(COMPOSE) exec web pytest
 
 .PHONY: test-backend-local
 test-backend-local: ## Run backend tests locally (requires local Postgres + Redis)
@@ -162,8 +162,8 @@ test-frontend-watch: ## Run frontend Jest tests in watch mode (via Compose)
 	$(COMPOSE) exec frontend npm run test:watch
 
 .PHONY: test-frontend-coverage
-test-frontend-coverage: ## Run frontend Jest tests with coverage report (via Compose)
-	$(COMPOSE) exec frontend npm run test:coverage
+test-frontend-coverage: ## Run frontend Jest tests with coverage report
+	$(COMPOSE) exec frontend npm test -- --coverage --watchAll=false
 
 .PHONY: test-frontend-local
 test-frontend-local: ## Run frontend Jest tests locally (requires npm install)
@@ -188,8 +188,23 @@ test-infra: ## Run Terraform validation + security checks
 test-integration: ## Run integration tests (Compose, Dockerfiles, env, CI workflows)
 	python3 -m pytest tests/
 
+.PHONY: test-integration-coverage
+test-integration-coverage: ## Run integration tests with coverage report
+	cd tests && python3 -m pytest
+
 .PHONY: test-all
 test-all: test-backend test-frontend test-integration ## Run every test suite (backend + frontend + integration)
+
+.PHONY: coverage
+coverage: test-backend-coverage test-frontend-coverage test-integration-coverage ## Run all tests and generate coverage reports
+	@echo ""
+	@echo "======================================================================"
+	@echo "                      COVERAGE REPORTS SUMMARY                        "
+	@echo "======================================================================"
+	@echo "Backend:     backend/htmlcov/index.html"
+	@echo "Frontend:    frontend/coverage/lcov-report/index.html"
+	@echo "Integration: tests/htmlcov/index.html"
+	@echo "======================================================================"
 
 # ── Utilities ─────────────────────────────────────────────────────────────────
 .PHONY: shell
