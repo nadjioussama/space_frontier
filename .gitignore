@@ -6,6 +6,8 @@ __pycache__/
 .pytest_cache/
 .coverage
 htmlcov/
+coverage/
+coverage.xml
 
 # Django
 *.sqlite3
