@@ -1,4 +1,5 @@
 import "@testing-library/jest-dom";
+import React from "react";
 
 // Mock next/navigation
 jest.mock("next/navigation", () => ({
@@ -18,12 +19,65 @@ jest.mock("next/dynamic", () => ({
   },
 }));
 
-import React from "react";
 // Mock next/link
 jest.mock("next/link", () => ({
   __esModule: true,
   default: ({ children, href, ...props }: any) => React.createElement("a", { href, ...props }, children),
 }));
+
+// Mock framer-motion
+jest.mock("framer-motion", () => {
+  const React = require("react");
+  
+  const motionProps = new Set([
+    "initial", "animate", "transition", "exit", "variants", "viewport", 
+    "layout", "layoutId", "drag", "dragConstraints", "dragElastic", 
+    "dragMomentum", "dragPropagation", "dragTransition", "inherit", 
+    "static", "custom", "onUpdate", "onAnimationStart", 
+    "onAnimationComplete", "onLayoutAnimationStart", "onLayoutAnimationComplete",
+    "onDragStart", "onDragEnd", "onDrag", "onDirectionLock", 
+    "onDragTransitionEnd", "onPan", "onPanStart", "onPanSessionStart", 
+    "onPanEnd", "onTap", "onTapStart", "onTapCancel", "onHoverStart", "onHoverEnd"
+  ]);
+
+  const filterProps = (props: any) => {
+    const filtered: any = {};
+    Object.keys(props).forEach(key => {
+      if (!motionProps.has(key) && !key.startsWith("while")) {
+        filtered[key] = props[key];
+      }
+    });
+    return filtered;
+  };
+
+  const cache = new Map<string, any>();
+  const motion: any = new Proxy({}, {
+    get: (_target, tag: string) => {
+      if (!cache.has(tag)) {
+        const Component = React.forwardRef(({ children, ...props }: any, ref: any) => {
+          return React.createElement(tag, { ...filterProps(props), ref }, children);
+        });
+        Component.displayName = `motion.${tag}`;
+        cache.set(tag, Component);
+      }
+      return cache.get(tag);
+    }
+  });
+
+  return {
+    motion,
+    AnimatePresence: ({ children }: any) => children,
+    useAnimation: () => ({
+      start: jest.fn().mockResolvedValue(undefined),
+      set: jest.fn(),
+      stop: jest.fn(),
+    }),
+    useInView: () => true,
+    useScroll: () => ({ scrollY: { get: () => 0 }, scrollYProgress: { get: () => 0 } }),
+    useTransform: (val: any) => val,
+    useSpring: (val: any) => val,
+  };
+});
 
 // Mock idb-keyval
 jest.mock("idb-keyval", () => {
