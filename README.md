@@ -13,6 +13,8 @@ space data into missions, puzzles, and interactive play for ages 6-14.
 - [Running tests](#running-tests)
 - [API endpoints](#api-endpoints)
 - [Celery beat schedule](#celery-beat-schedule)
+- [Building the image](#building-the-image)
+- [Makefile reference](#makefile-reference)
 - [Deployment](#deployment)
 - [Architecture highlights](#architecture-highlights)
 - [Documentation index](#documentation-index)
@@ -133,35 +135,97 @@ npm run dev
 
 ## Running tests
 
+All test commands come in two flavours: **via Docker Compose** (no local toolchain
+needed beyond Docker) and **locally** (faster feedback loop, requires the relevant
+runtime installed). The Makefile wraps every variant — see the
+[Makefile reference](#makefile-reference) for the full list.
+
+---
+
 ### Backend (Django / pytest)
 
 ```bash
-# Inside Docker
+# ── via Docker Compose ────────────────────────────────────────
+# Basic run
 docker compose exec web pytest
 
-# Locally (requires Postgres + Redis)
+# With terminal + HTML coverage report (written to backend/htmlcov/)
+docker compose exec web pytest --cov=. --cov-report=term-missing --cov-report=html
+
+# ── locally (requires Postgres + Redis running) ───────────────
 cd backend
 DJANGO_SETTINGS_MODULE=config.settings.test pytest
 ```
 
-### Frontend (Jest)
+**With make:**
 
 ```bash
-cd frontend
-npm install
-npm test
-
-# Watch mode
-npm run test:watch
-
-# Coverage report
-npm run test:coverage
+make test-backend             # basic run (Compose)
+make test-backend-coverage    # with coverage report (Compose)
+make test-backend-local       # locally
 ```
 
-### Infrastructure
+---
+
+### Frontend (Jest + TypeScript)
 
 ```bash
-# Terraform syntax validation
+# ── via Docker Compose ────────────────────────────────────────
+# CI mode (runs once, no watch)
+docker compose exec frontend npm test -- --watchAll=false
+
+# Watch mode (re-runs on file changes)
+docker compose exec frontend npm run test:watch
+
+# Coverage report
+docker compose exec frontend npm run test:coverage
+
+# TypeScript type-check (no test runner, just tsc)
+docker compose exec frontend npm run typecheck
+
+# ── locally (requires npm install) ────────────────────────────
+cd frontend
+npm install
+npm test -- --watchAll=false   # CI mode
+npm run test:watch             # watch mode
+npm run test:coverage          # coverage
+npm run typecheck              # type-check only
+```
+
+**With make:**
+
+```bash
+make test-frontend             # CI mode (Compose)
+make test-frontend-watch       # watch mode (Compose)
+make test-frontend-coverage    # with coverage (Compose)
+make test-frontend-local       # locally
+make typecheck                 # TypeScript check (Compose)
+make typecheck-local           # TypeScript check locally
+```
+
+---
+
+### Integration tests
+
+Validates the Docker Compose setup, Dockerfiles, env file, and CI workflow files.
+Runs against the host — no services need to be up.
+
+```bash
+python -m pytest tests/
+```
+
+**With make:**
+
+```bash
+make test-integration
+```
+
+---
+
+### Infrastructure (Terraform)
+
+```bash
+# Syntax validation
 bash infra/tests/test_terraform.sh
 
 # Naming conventions
@@ -169,9 +233,24 @@ bash infra/tests/test_naming.sh
 
 # Security checks (SG rules, IAM policies, encryption)
 bash infra/tests/test_security.sh
+```
 
-# Integration tests (validates Docker Compose, Dockerfiles, env, CI workflows)
-python -m pytest tests/
+**With make:**
+
+```bash
+make test-infra     # runs all three scripts in sequence
+```
+
+---
+
+### Run everything at once
+
+```bash
+# Backend + frontend + integration (skips infra — requires AWS creds)
+make test-all
+
+# All four suites including infra
+make test-all test-infra
 ```
 
 ---
@@ -255,6 +334,169 @@ Automated tasks managed by Celery Beat. Configured in `backend/config/celery.py`
 
 ---
 
+## Building the image
+
+The repo ships with a `Dockerfile` that produces a **single self-contained image**
+running Nginx, Gunicorn, Next.js, and two Celery processes via supervisord.
+It still requires an external **PostgreSQL** and **Redis** instance — supply these
+via environment variables (see `.env.example`).
+
+> **Before building**, add `output: 'standalone'` to `frontend/next.config.js`
+> so Next.js emits a self-contained `server.js`:
+>
+> ```js
+> module.exports = {
+>   output: 'standalone',   // ← required for the single-image build
+>   reactStrictMode: true,
+>   // ...
+> };
+> ```
+
+---
+
+### Option A — manual Docker build
+
+```bash
+# 1. Build (swap in your real API host)
+docker build \
+  --build-arg NEXT_PUBLIC_API_BASE=http://localhost \
+  -t space-frontier:latest \
+  .
+
+# 2. Run (reads credentials from .env; map port 80)
+docker run --rm -d \
+  --name space-frontier-app \
+  --env-file .env \
+  -p 80:80 \
+  space-frontier:latest
+
+# App is now at http://localhost
+# Admin panel : http://localhost/admin/
+# API         : http://localhost/api/v1/
+```
+
+To stop:
+
+```bash
+docker stop space-frontier-app
+```
+
+---
+
+### Option B — Docker Compose (full dev stack, recommended locally)
+
+`docker-compose.yml` starts Postgres and Redis alongside the app services — no
+external dependencies needed.
+
+```bash
+# 1. Copy and edit env
+cp .env.example .env
+
+# 2. Start everything (builds images on first run)
+docker compose up --build -d
+
+# 3. First-time setup
+docker compose exec web python manage.py migrate
+docker compose exec web python manage.py createsuperuser
+
+# 4. Seed NASA content
+docker compose exec web python manage.py ingest_apod
+docker compose exec web python manage.py ingest_mars
+docker compose exec web python manage.py seed_constellations
+# (see Quick start for the full seed sequence)
+```
+
+| URL | What |
+|-----|------|
+| http://localhost:3000 | Game frontend |
+| http://localhost:8000/admin/ | Django admin |
+| http://localhost:8000/api/v1/ | REST API |
+| http://localhost:8000/health/ | Health check |
+
+Stop and clean up:
+
+```bash
+docker compose down        # stops containers, keeps volumes
+docker compose down -v     # stops containers AND deletes the database volume
+```
+
+---
+
+### Option C — Makefile (wraps both workflows above)
+
+See the [Makefile reference](#makefile-reference) below for all available targets.
+
+```bash
+# Full dev stack (Compose)
+make up           # build + start everything
+make migrate      # run migrations
+make seed         # ingest all NASA data
+make logs         # tail all logs
+
+# Single image (Docker only)
+make build        # build space-frontier:latest
+make run          # docker run with .env
+make stop         # docker stop
+```
+
+Override defaults at call time:
+
+```bash
+make build IMAGE_TAG=v1.2.3 API_BASE=https://api.mysite.com
+make push  IMAGE_NAME=ghcr.io/myorg/space-frontier IMAGE_TAG=v1.2.3
+```
+
+---
+
+## Makefile reference
+
+Run `make help` to print this table at any time.
+
+| Target | Description |
+|--------|-------------|
+| **Single-image (Docker)** | |
+| `make build` | Build `space-frontier:latest` (pass `IMAGE_TAG=` and `API_BASE=` to override) |
+| `make run` | `docker run` the image on port 80, reading `.env` |
+| `make stop` | Stop the running container |
+| `make push` | Push to a registry (set `IMAGE_NAME=registry/image`) |
+| **Dev stack (Compose)** | |
+| `make up` | Build and start all services in the background |
+| `make up-fg` | Same but in the foreground (streams all logs) |
+| `make down` | Stop and remove containers (keeps volumes) |
+| `make down-v` | Stop containers **and delete the database volume** |
+| `make restart` | Restart all services |
+| `make logs` | Follow logs for all services |
+| `make logs-web` | Follow logs for the Django service only |
+| **Database** | |
+| `make migrate` | Run Django migrations |
+| `make makemigrations` | Create new migration files |
+| `make superuser` | Create a Django superuser (interactive) |
+| `make seed` | Run all NASA ingest + seed commands |
+| **Tests** | |
+| `make test` | Run backend + frontend tests (Compose) |
+| `make test-all` | Run backend + frontend + integration tests |
+| `make test-backend` | Backend pytest (Compose) |
+| `make test-backend-coverage` | Backend pytest with coverage report (Compose) |
+| `make test-backend-local` | Backend pytest locally (needs Postgres + Redis) |
+| `make test-frontend` | Frontend Jest in CI mode (Compose) |
+| `make test-frontend-watch` | Frontend Jest in watch mode (Compose) |
+| `make test-frontend-coverage` | Frontend Jest with coverage report (Compose) |
+| `make test-frontend-local` | Frontend Jest locally (needs npm install) |
+| `make typecheck` | TypeScript type-check (Compose) |
+| `make typecheck-local` | TypeScript type-check locally |
+| `make test-integration` | Integration tests (Compose, Dockerfiles, env, CI) |
+| `make test-infra` | Terraform validation + security checks |
+| **Utilities** | |
+| `make shell` | Open a Django shell |
+| `make bash-web` | Open a bash shell in the web container |
+| `make bash-frontend` | Open a shell in the frontend container |
+| `make lint` | Run ruff (backend) + eslint (frontend) |
+| `make collectstatic` | Collect Django static files |
+| `make clean` | Remove stopped containers and dangling images |
+| `make clean-all` | Remove **all** unused Docker resources (⚠ destructive) |
+
+---
+
 ## Deployment
 
 ### Overview
@@ -334,6 +576,7 @@ See [`.env.example`](.env.example) for the full list. Production-only variables:
 | Document | Description |
 |----------|-------------|
 | [`README.md`](README.md) | This file — project guide, setup, and reference |
+| [`Makefile`](Makefile) | Build, run, test, and utility shortcuts |
 | [`infra/README.md`](infra/README.md) | Infrastructure setup, Terraform modules, deploy, disaster recovery |
 | [`PLAN.md`](PLAN.md) | Full project plan — architecture, game design, phases, and specifications |
 | [`.env.example`](.env.example) | Environment variable template with all required and optional vars |
