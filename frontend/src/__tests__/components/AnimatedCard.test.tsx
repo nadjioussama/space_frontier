@@ -49,7 +49,7 @@ describe("AnimatedCard", () => {
   });
 
   it("passes additional props to the wrapper div", () => {
-    const { container } = render(
+    render(
       <AnimatedCard data-testid="card">
         <span>Content</span>
       </AnimatedCard>

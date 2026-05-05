@@ -32,12 +32,6 @@ const MISSION_TYPE_LABELS: Record<string, { label: string; color: string }> = {
 
 export default function MissionsPage() {
   // Fetch all planet detail pages to get mission lists
-  const { data: planets } = useQuery({
-    queryKey: ["planets"],
-    queryFn: () => apiFetch<Array<{ slug: string; name: string }>>("/api/v1/planets/"),
-    staleTime: 60 * 60 * 1000,
-  });
-
   const { data: earthMissions } = useQuery({
     queryKey: ["planet-detail", "earth"],
     queryFn: () => apiFetch<PlanetMissions>("/api/v1/planets/earth/"),

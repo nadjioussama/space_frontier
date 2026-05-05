@@ -1,5 +1,4 @@
 import os
-import hashlib
 import pytest
 import requests_mock
 from django.conf import settings

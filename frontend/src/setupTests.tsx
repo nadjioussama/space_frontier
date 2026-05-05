@@ -12,8 +12,8 @@ jest.mock("next/navigation", () => ({
 // Mock next/dynamic
 jest.mock("next/dynamic", () => ({
   __esModule: true,
-  default: (loader: () => Promise<any>) => {
-    const Component = (props: any) => null;
+  default: () => {
+    const Component = () => null;
     Component.displayName = "DynamicComponent";
     return Component;
   },
