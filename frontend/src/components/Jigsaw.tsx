@@ -171,6 +171,8 @@ export default function JigsawCanvas({ jigsaw, onComplete }: Props) {
     <div className="relative w-full">
       <div
         ref={hostRef}
+        role="presentation"
+        aria-label="Jigsaw puzzle area"
         className="w-full aspect-[720/480] bg-black/40 rounded-xl border border-white/10 overflow-hidden"
       />
       {!ready && !error && (

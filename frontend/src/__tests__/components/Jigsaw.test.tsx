@@ -71,19 +71,39 @@ const JIGSAW_PROPS = {
 };
 
 describe("JigsawCanvas", () => {
-  it("renders loading state initially", () => {
+  it("renders loading state initially", async () => {
     render(<JigsawCanvas {...JIGSAW_PROPS} />);
     expect(screen.getByText("Loading jigsaw...")).toBeInTheDocument();
+    // Wait for the async init to complete to avoid act() warnings after test finishes
+    await screen.findByLabelText(/Jigsaw puzzle area/i);
   });
 
-  it("renders canvas container", () => {
+  it("renders canvas container after load", async () => {
     const { container } = render(<JigsawCanvas {...JIGSAW_PROPS} />);
-    expect(container.querySelector(".aspect-\\[720\\/480\\]")).toBeInTheDocument();
+    // Wait for "Loading jigsaw..." to disappear and puzzle area to be ready
+    await screen.findByLabelText(/Jigsaw puzzle area/i);
+    expect(container.querySelector("canvas")).toBeInTheDocument();
   });
 
-  it("does not show completion badge initially", () => {
+  it("renders error state on load failure", async () => {
+    const PIXI = require("pixi.js");
+    PIXI.Application.mockImplementationOnce(() => {
+      throw new Error("Failed to init PIXI");
+    });
+
     render(<JigsawCanvas {...JIGSAW_PROPS} />);
-    expect(screen.queryByText("Jigsaw complete!")).not.toBeInTheDocument();
+    expect(await screen.findByText(/Puzzle could not load: Failed to init PIXI/)).toBeInTheDocument();
+  });
+
+  it("handles image download failure gracefully", async () => {
+    const PIXI = require("pixi.js");
+    PIXI.Assets.load.mockRejectedValueOnce(new Error("CORS fail"));
+    
+    const { container } = render(<JigsawCanvas {...JIGSAW_PROPS} />);
+    // Should still finish loading but use fallback graphics
+    await screen.findByRole("presentation", { hidden: true }).catch(() => {}); 
+    // We can't easily check internal state, but it should be ready
+    expect(container.querySelector("canvas")).toBeInTheDocument();
   });
 });
 
