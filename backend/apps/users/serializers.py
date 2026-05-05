@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import ParentAccount, Player
+from .models import Player
 
 
 class PlayerProfileSerializer(serializers.ModelSerializer):

@@ -1,7 +1,6 @@
 """Quiz generator for EPIC Earth observation missions. PLAN §2.2.5."""
 from __future__ import annotations
 
-import random
 
 from apps.nasa_ingest.models import EPICImage
 from ..models import Mission, Quiz
@@ -47,7 +46,7 @@ def generate(mission: Mission, images: list[EPICImage], n: int = 3) -> list[Quiz
             wrong_dates.append(d.strftime("%Y-%m-%d"))
         created.append(Quiz.objects.create(
             mission=mission, auto_generated=True, difficulty=2,
-            question=f"When was this Earth image captured by EPIC?",
+            question="When was this Earth image captured by EPIC?",
             correct_answer=img.date_taken.strftime("%Y-%m-%d"),
             distractors=wrong_dates[:3],
             explanation=f"This image was taken on {img.date_taken.strftime('%B %d, %Y')}.",

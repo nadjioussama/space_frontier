@@ -13,7 +13,6 @@ from apps.nasa_ingest.models import APODEntry
 from .models import Mission, Planet, Quiz
 from .serializers import (
     MissionDetailSerializer,
-    MissionListItemSerializer,
     PlanetSerializer,
     TodayPayloadSerializer,
 )

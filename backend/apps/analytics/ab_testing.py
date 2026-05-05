@@ -9,7 +9,7 @@ from django.db import transaction
 from django.db.models import Avg, Count, F, FloatField
 from django.db.models.functions import Cast
 
-from .models import Experiment, ExperimentVariant, PlayerExperiment, RawEvent
+from .models import Experiment, PlayerExperiment, RawEvent
 
 MAX_CONCURRENT_PER_PLAYER = 2
 

@@ -7,7 +7,6 @@ distractors. Good enough to prove the end-to-end loop and exercise the schema.
 from __future__ import annotations
 
 import random
-from datetime import date
 
 from apps.nasa_ingest.models import APODEntry
 from ..models import Mission, Quiz
@@ -54,7 +53,7 @@ def _question_about_explanation(entry: APODEntry) -> dict:
     # Robust-ish: strip trailing whitespace, bail gracefully if text is short.
     first = (entry.explanation or "").strip().split(".")[0].strip()
     if len(first) < 20:
-        first = f"The object shown was photographed for the APOD archive"
+        first = "The object shown was photographed for the APOD archive"
     return {
         "question": f"True or false: {first}.",
         "correct_answer": "True",

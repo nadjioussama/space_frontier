@@ -10,12 +10,9 @@ frontend so it can request appropriately-leveled content next time.
 """
 from __future__ import annotations
 
-import json
 import logging
 from dataclasses import dataclass, field
-from typing import Optional
 
-from django.conf import settings
 from django.core.cache import cache
 
 logger = logging.getLogger(__name__)
@@ -94,7 +91,6 @@ def record_answer(player_id: int | str, is_correct: bool, topic: str = "") -> DD
     state.recent_results = state.recent_results[-WINDOW_SIZE:]
     state.actions_since_adjustment += 1
 
-    old_level = state.current_level
     adjusted = False
 
     # Frustration streak: immediate decrease, bypass cooldown

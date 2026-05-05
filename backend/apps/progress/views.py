@@ -7,7 +7,7 @@ from rest_framework.views import APIView
 
 from apps.users.models import Player
 from . import dda, leaderboard
-from .models import Constellation, PlayerStar, SkillStar
+from .models import Constellation, PlayerStar
 from .services import get_player_progress
 
 

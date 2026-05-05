@@ -1,5 +1,4 @@
 """EPIC (Earth Polychromatic Imaging Camera) client. PLAN §2.2.5, §5.3."""
-from django.conf import settings
 from .base import NASAClient
 
 

@@ -5,7 +5,6 @@ PLAN §21.3 (verification flow), §22 (display-name moderation).
 from __future__ import annotations
 
 import logging
-from typing import Any
 
 from django.utils import timezone
 
