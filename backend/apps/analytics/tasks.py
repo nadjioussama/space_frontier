@@ -12,6 +12,8 @@ from . import stream
 from .alerts import run_alert_rules
 from .ab_testing import score_experiment
 from .models import Experiment
+from apps.games.views import TodayView, PlanetListView
+from django.test import RequestFactory
 
 logger = logging.getLogger(__name__)
 
@@ -127,9 +129,6 @@ def warm_caches() -> dict:
     Calls the same view-layer code paths a real request would, so the cache
     contents match exactly what clients will read.
     """
-    from django.test import RequestFactory
-    from apps.games.views import TodayView, PlanetListView
-
     rf = RequestFactory()
     warmed = 0
     for view, path in ((TodayView, "/api/v1/nasa/today/"), (PlanetListView, "/api/v1/planets/")):

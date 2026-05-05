@@ -53,6 +53,7 @@ class TestUsersAdmin:
         admin_cls = DisplayNameAuditAdmin(DisplayNameAudit, AdminSite())
         request = RequestFactory().get("/")
         request.user = moderator
+        admin_cls.message_user = MagicMock()
 
         admin_cls.approve_names(request, DisplayNameAudit.objects.filter(pk=audit.pk))
 
@@ -76,6 +77,7 @@ class TestUsersAdmin:
         admin_cls = DisplayNameAuditAdmin(DisplayNameAudit, AdminSite())
         request = RequestFactory().get("/")
         request.user = moderator
+        admin_cls.message_user = MagicMock()
 
         admin_cls.reject_names(request, DisplayNameAudit.objects.filter(pk=audit.pk))
 

@@ -4,6 +4,7 @@ The Exoplanet Archive uses a TAP (Table Access Protocol) query interface,
 not the api.nasa.gov gateway. It has its own rate limits and doesn't need
 the NASA API key.
 """
+import requests
 from .base import NASAClient
 
 
@@ -21,7 +22,6 @@ class ExoplanetClient(NASAClient):
             f"LIMIT {limit}"
         )
         # TAP endpoint returns JSON when format=json
-        import requests
         resp = requests.get(self.BASE, params={
             "query": query,
             "format": "json",
