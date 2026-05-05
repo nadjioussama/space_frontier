@@ -1,5 +1,6 @@
 /** @type {import('next').NextConfig} */
 module.exports = {
+  output: 'standalone',
   reactStrictMode: true,
   // Let the dev server proxy NASA images and our backend's /media/ URLs.
   images: {
