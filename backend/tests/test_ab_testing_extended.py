@@ -1,6 +1,6 @@
 """Tests for analytics.ab_testing — experiment scoring and enrollment."""
 import math
-from unittest.mock import MagicMock, patch, PropertyMock
+from unittest.mock import MagicMock, patch
 
 import pytest
 

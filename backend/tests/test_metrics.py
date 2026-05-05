@@ -1,7 +1,6 @@
 """Tests for config.metrics — Prometheus business metrics endpoint."""
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 
-import pytest
 from django.test import RequestFactory
 
 

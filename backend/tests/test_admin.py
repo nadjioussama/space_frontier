@@ -1,12 +1,11 @@
 """Tests for Django admin registration and custom actions across all apps."""
 from unittest.mock import MagicMock, patch
-from datetime import date
 
 import pytest
 from django.contrib.admin.sites import AdminSite
 from django.test import RequestFactory
 
-from tests.factories import make_player, make_parent
+from tests.factories import make_player
 
 
 # --------------------------------------------------------------------------- #

@@ -8,7 +8,6 @@ from django.core.cache import cache
 from django.test import TestCase
 from django.urls import reverse
 
-from apps.games.models import JigsawPuzzle, Mission, Quiz
 from apps.games.services import generate_apod_mission
 from apps.progress.models import Constellation, PlayerStar, SkillStar
 
@@ -22,8 +21,8 @@ class PlanetDetailViewTests(TestCase):
 
     def test_returns_missions_sorted_by_created_at(self):
         """Missions should be ordered newest first."""
-        m1 = make_mission(slug="old-mission", planet=self.planet, title="Old")
-        m2 = make_mission(slug="new-mission", planet=self.planet, title="New")
+        make_mission(slug="old-mission", planet=self.planet, title="Old")
+        make_mission(slug="new-mission", planet=self.planet, title="New")
         resp = self.client.get(reverse("planet-detail", args=["view-planet"]))
         self.assertEqual(resp.status_code, 200)
         slugs = [m["slug"] for m in resp.json()["missions"]]

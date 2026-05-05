@@ -1,6 +1,6 @@
 """Tests for analytics.rollups — metric read helpers."""
-from datetime import date, timedelta
-from unittest.mock import MagicMock, patch, PropertyMock
+from datetime import date
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -120,7 +120,8 @@ class TestRollingAvg:
         from apps.analytics.rollups import rolling_avg
 
         values = {1: 10.0, 2: 20.0, 3: 30.0}
-        fn = lambda d: values.get((date.today() - d).days, 0.0)
+        def fn(d):
+            return values.get((date.today() - d).days, 0.0)
         # rolling_avg calls fn(today - timedelta(days=i)) for i in 1..days
         # We need a simpler mock
         call_count = [0]

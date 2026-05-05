@@ -12,7 +12,7 @@ from apps.games.models import Quiz
 from apps.games.services import generate_apod_mission
 from apps.progress.models import Constellation, SkillStar
 
-from .factories import make_apod, make_parent, make_planet, make_player
+from .factories import make_apod, make_parent, make_player
 
 
 class HealthTests(TestCase):

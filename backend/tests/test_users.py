@@ -4,7 +4,7 @@ from __future__ import annotations
 from django.test import SimpleTestCase, TestCase
 
 from apps.users.models import (
-    AuditLog, ConsentRecord, Player, check_display_name,
+    AuditLog, ConsentRecord, check_display_name,
 )
 from apps.users.services import (
     grant_consent, register_parent, request_data_deletion,

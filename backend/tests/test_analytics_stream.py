@@ -1,6 +1,6 @@
 """Tests for analytics.stream — Redis Streams buffer."""
 import json
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import pytest
 

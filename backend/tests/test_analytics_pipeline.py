@@ -1,8 +1,7 @@
 """Tests for analytics.tasks — Celery tasks for the analytics pipeline."""
 from datetime import date, datetime, timedelta, timezone
-from unittest.mock import MagicMock, patch, call
+from unittest.mock import MagicMock, patch
 
-import pytest
 
 
 class TestPartitionName:

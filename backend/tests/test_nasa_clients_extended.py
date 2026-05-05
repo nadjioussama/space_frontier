@@ -2,9 +2,8 @@
 from datetime import date
 from unittest.mock import patch, MagicMock
 
-import pytest
 
-from apps.nasa_ingest.clients.base import NASAClient, QuotaExhaustedError
+from apps.nasa_ingest.clients.base import QuotaExhaustedError
 
 
 class TestAPODClient:
@@ -74,7 +73,7 @@ class TestNeoWsClient:
 
         mock_get.return_value = {"element_count": 20}
         client = NeoWsClient()
-        result = client.fetch_week(start=date(2026, 4, 13))
+        client.fetch_week(start=date(2026, 4, 13))
         call_args = mock_get.call_args
         params = call_args[0][1]
         assert params["start_date"] == "2026-04-13"

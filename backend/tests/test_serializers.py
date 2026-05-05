@@ -1,7 +1,6 @@
 """Tests for DRF serializers in apps/games/serializers.py."""
 from __future__ import annotations
 
-from unittest.mock import patch
 
 from django.core.cache import cache
 from django.test import TestCase

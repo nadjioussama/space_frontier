@@ -1,7 +1,6 @@
 """Tests for Celery ingestion tasks (nasa_ingest + progress)."""
 from __future__ import annotations
 
-from unittest import mock
 from unittest.mock import MagicMock, patch
 
 from django.core.cache import cache
