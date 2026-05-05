@@ -5,24 +5,6 @@ import { MissionViewport } from "@/components/MissionViewport";
 import { usePlayer } from "@/store/player";
 import type { MissionDetail } from "@/lib/api";
 
-jest.mock("framer-motion", () => ({
-  motion: {
-    div: ({ children, ...props }: any) => <div {...props}>{children}</div>,
-    span: ({ children, ...props }: any) => <span {...props}>{children}</span>,
-    a: ({ children, ...props }: any) => <a {...props}>{children}</a>,
-    button: ({ children, ...props }: any) => <button {...props}>{children}</button>,
-    li: ({ children, ...props }: any) => <li {...props}>{children}</li>,
-    svg: ({ children, ...props }: any) => <svg {...props}>{children}</svg>,
-    circle: ({ children, ...props }: any) => <circle {...props}>{children}</circle>,
-    path: (props: any) => <path {...props} />,
-    line: (props: any) => <line {...props} />,
-    header: ({ children, ...props }: any) => <header {...props}>{children}</header>,
-    h1: ({ children, ...props }: any) => <h1 {...props}>{children}</h1>,
-    section: ({ children, ...props }: any) => <section {...props}>{children}</section>,
-  },
-  AnimatePresence: ({ children }: any) => <>{children}</>,
-  useAnimation: () => ({ start: jest.fn(), set: jest.fn() }),
-}));
 
 jest.mock("@/lib/sound", () => ({
   SoundManager: {
