@@ -34,3 +34,11 @@ bin/
 .ruff_cache/
 *.tsbuildinfo
 backend/celerybeat-schedule
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+.terraform.lock.hcl
+*.tfvars
+*.tfvars.json

@@ -14,11 +14,11 @@ check() {
   if terraform -chdir="$dir" init -backend=false -input=false >/dev/null 2>&1 && \
      terraform -chdir="$dir" validate >/dev/null 2>&1; then
     echo "OK"
-    ((PASS++))
+    PASS=$((PASS + 1))
   else
     echo "FAIL"
     terraform -chdir="$dir" validate 2>&1 || true
-    ((FAIL++))
+    FAIL=$((FAIL + 1))
   fi
 }
 

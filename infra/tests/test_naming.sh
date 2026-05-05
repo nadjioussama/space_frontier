@@ -31,7 +31,7 @@ for env in "$INFRA_DIR"/environments/*/main.tf; do
       echo "    FAIL: $env_name references non-existent module: $src"
       ((ERRORS++))
     fi
-  done < <(grep 'source *= *"' "$env" || true)
+  done < <(grep 'source *= *"\.\./' "$env" || true)
 done
 echo "OK"
 

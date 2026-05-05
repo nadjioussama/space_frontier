@@ -1,6 +1,19 @@
 # Two-tier CDN: Cloudflare (outer, free egress) -> CloudFront (origin shield) -> origins.
 # Behaviors mirror PLAN §11.5 cache-policy table.
 
+terraform {
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 5.0"
+    }
+    cloudflare = {
+      source  = "cloudflare/cloudflare"
+      version = "~> 4.0"
+    }
+  }
+}
+
 variable "name"               { type = string }
 variable "alb_domain"         { type = string }
 variable "media_domain"       { type = string }
@@ -103,7 +116,11 @@ resource "aws_cloudfront_distribution" "this" {
     cache_policy_id        = aws_cloudfront_cache_policy.api_short.id
   }
 
-  restrictions { geo_restriction { restriction_type = "none" } }
+  restrictions {
+    geo_restriction {
+      restriction_type = "none"
+    }
+  }
   viewer_certificate { cloudfront_default_certificate = true }
 }
 
@@ -113,7 +130,10 @@ data "aws_iam_policy_document" "s3_cf" {
   statement {
     actions   = ["s3:GetObject"]
     resources = ["${each.value}/*"]
-    principals { type = "Service"; identifiers = ["cloudfront.amazonaws.com"] }
+    principals {
+      type        = "Service"
+      identifiers = ["cloudfront.amazonaws.com"]
+    }
     condition {
       test     = "StringEquals"
       variable = "AWS:SourceArn"

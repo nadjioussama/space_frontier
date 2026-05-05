@@ -16,9 +16,18 @@ variable "db_replica_host"    { type = string }
 variable "redis_host"         { type = string }
 variable "db_secret_arn"      { type = string }
 variable "app_secret_arn"     { type = string }   # DJANGO_SECRET_KEY, NASA_API_KEY, SENTRY_DSN, SLACK_WEBHOOK
-variable "web_min"            { type = number ; default = 2 }
-variable "web_max"            { type = number ; default = 20 }
-variable "use_spot"           { type = bool   ; default = false }
+variable "web_min" {
+  type    = number
+  default = 2
+}
+variable "web_max" {
+  type    = number
+  default = 20
+}
+variable "use_spot" {
+  type    = bool
+  default = false
+}
 
 resource "aws_ecs_cluster" "this" { name = var.name }
 
@@ -41,7 +50,11 @@ resource "aws_lb_target_group" "web" {
   protocol    = "HTTP"
   vpc_id      = var.vpc_id
   target_type = "ip"
-  health_check { path = "/health/"; interval = 15; healthy_threshold = 2 }
+  health_check {
+    path              = "/health/"
+    interval          = 15
+    healthy_threshold = 2
+  }
 }
 
 resource "aws_lb_target_group" "frontend" {
@@ -50,21 +63,34 @@ resource "aws_lb_target_group" "frontend" {
   protocol    = "HTTP"
   vpc_id      = var.vpc_id
   target_type = "ip"
-  health_check { path = "/"; interval = 15 }
+  health_check {
+    path     = "/"
+    interval = 15
+  }
 }
 
 resource "aws_lb_listener" "http" {
   load_balancer_arn = aws_lb.this.arn
   port              = 80
   protocol          = "HTTP"
-  default_action { type = "forward"; target_group_arn = aws_lb_target_group.frontend.arn }
+  default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.frontend.arn
+  }
 }
 
 resource "aws_lb_listener_rule" "api" {
   listener_arn = aws_lb_listener.http.arn
   priority     = 10
-  condition { path_pattern { values = ["/api/*", "/admin/*", "/health/*", "/metrics"] } }
-  action    { type = "forward"; target_group_arn = aws_lb_target_group.web.arn }
+  condition {
+    path_pattern {
+      values = ["/api/*", "/admin/*", "/health/*", "/metrics"]
+    }
+  }
+  action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.web.arn
+  }
 }
 
 # --- Shared container env/secrets --------------------------------------
@@ -247,7 +273,10 @@ resource "aws_ecs_service" "svc" {
     }
   }
 
-  deployment_circuit_breaker { enable = true; rollback = true }
+  deployment_circuit_breaker {
+    enable   = true
+    rollback = true
+  }
   lifecycle { ignore_changes = [desired_count] }
 }
 
@@ -287,7 +316,10 @@ resource "aws_appautoscaling_scheduled_action" "afternoon_prewarm" {
   resource_id        = each.value.resource_id
   scalable_dimension = each.value.scalable_dimension
   schedule           = "cron(0 14 ? * MON-FRI *)"
-  scalable_target_action { min_capacity = 5; max_capacity = each.value.max_capacity }
+  scalable_target_action {
+    min_capacity = 5
+    max_capacity = each.value.max_capacity
+  }
 }
 
 resource "aws_appautoscaling_scheduled_action" "night_cooldown" {
@@ -297,7 +329,10 @@ resource "aws_appautoscaling_scheduled_action" "night_cooldown" {
   resource_id        = each.value.resource_id
   scalable_dimension = each.value.scalable_dimension
   schedule           = "cron(0 2 * * ? *)"
-  scalable_target_action { min_capacity = var.web_min; max_capacity = each.value.max_capacity }
+  scalable_target_action {
+    min_capacity = var.web_min
+    max_capacity = each.value.max_capacity
+  }
 }
 
 output "alb_dns"        { value = aws_lb.this.dns_name }

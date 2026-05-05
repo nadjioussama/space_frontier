@@ -5,8 +5,14 @@ variable "alb_arn_suffix"   { type = string }
 variable "rds_identifier"   { type = string }
 variable "redis_cluster_id" { type = string }
 variable "monthly_budget"   { type = number }
-variable "pagerduty_endpoint" { type = string ; default = "" }
-variable "slack_endpoint"     { type = string ; default = "" }
+variable "pagerduty_endpoint" {
+  type    = string
+  default = ""
+}
+variable "slack_endpoint" {
+  type    = string
+  default = ""
+}
 
 resource "aws_sns_topic" "alerts" { name = "${var.name}-alerts" }
 

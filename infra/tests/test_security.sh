@@ -7,29 +7,29 @@ INFRA_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 PASS=0
 FAIL=0
 
-pass() { ((PASS++)); echo "  ✓ $1"; }
-fail() { ((FAIL++)); echo "  ✗ $1"; }
+pass() { PASS=$((PASS + 1)); echo "  ✓ $1"; }
+fail() { FAIL=$((FAIL + 1)); echo "  ✗ $1"; }
 
 echo "=== Security Group Checks ==="
 
 NETWORK="$INFRA_DIR/modules/network/main.tf"
 
 # ALB should only allow ports 80 and 443
-if grep -q 'from_port = 80' "$NETWORK" && grep -q 'from_port = 443' "$NETWORK"; then
+if grep -qE 'from_port[[:space:]]*=[[:space:]]*80' "$NETWORK" && grep -qE 'from_port[[:space:]]*=[[:space:]]*443' "$NETWORK"; then
     pass "ALB allows HTTP (80) and HTTPS (443)"
 else
     fail "ALB missing HTTP or HTTPS ingress"
 fi
 
 # Data SG should restrict to specific ports (5432, 6379)
-if grep -q 'from_port = 5432' "$NETWORK" && grep -q 'from_port = 6379' "$NETWORK"; then
+if grep -qE 'from_port[[:space:]]*=[[:space:]]*5432' "$NETWORK" && grep -qE 'from_port[[:space:]]*=[[:space:]]*6379' "$NETWORK"; then
     pass "Data SG restricts to Postgres (5432) and Redis (6379)"
 else
     fail "Data SG missing port restrictions"
 fi
 
 # Data SG should reference ECS security group, not open to world
-if grep -A2 'aws_security_group.*data' "$NETWORK" | grep -q 'security_groups'; then
+if grep -A20 'aws_security_group.*"data"' "$NETWORK" | grep -q 'security_groups'; then
     pass "Data SG ingress uses security group references (not CIDR)"
 else
     fail "Data SG may be open to the world"
@@ -37,7 +37,7 @@ fi
 
 # ECS SG ingress should reference ALB SG only
 DATA_SECTION=$(sed -n '/aws_security_group.*"data"/,/^}/p' "$NETWORK")
-if echo "$DATA_SECTION" | grep -q 'cidr_blocks.*0\.0\.0\.0'; then
+if echo "$DATA_SECTION" | sed -n '/ingress[[:space:]]*{/,/}/p' | grep -q 'cidr_blocks.*0\.0\.0\.0'; then
     fail "Data SG has public CIDR ingress rule"
 else
     pass "Data SG does not have public CIDR ingress"
@@ -63,7 +63,7 @@ else
 fi
 
 # Check for overly broad S3 resources
-if grep -B5 's3:GetObject' "$IAM" | grep -q 'bucket_arns'; then
+if grep -A5 's3:GetObject' "$IAM" | grep -q 'bucket_arns'; then
     pass "S3 permissions are scoped to specific buckets"
 else
     fail "S3 permissions may be too broad"

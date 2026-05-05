@@ -4,10 +4,22 @@ variable "name"               { type = string }
 variable "vpc_id"             { type = string }
 variable "subnet_ids"         { type = list(string) }
 variable "security_group_ids" { type = list(string) }
-variable "instance_class"     { type = string ; default = "db.t3.medium" }
-variable "multi_az"           { type = bool   ; default = true }
-variable "create_replica"     { type = bool   ; default = true }
-variable "replica_class"      { type = string ; default = "db.t3.small" }
+variable "instance_class" {
+  type    = string
+  default = "db.t3.medium"
+}
+variable "multi_az" {
+  type    = bool
+  default = true
+}
+variable "create_replica" {
+  type    = bool
+  default = true
+}
+variable "replica_class" {
+  type    = string
+  default = "db.t3.small"
+}
 
 resource "aws_db_subnet_group" "this" {
   name       = "${var.name}-db"
@@ -29,7 +41,10 @@ resource "aws_db_parameter_group" "this" {
   name   = "${var.name}-pg16"
   family = "postgres16"
   # Analytics partitioned tables benefit from constraint exclusion.
-  parameter { name = "constraint_exclusion"; value = "partition" }
+  parameter {
+    name  = "constraint_exclusion"
+    value = "partition"
+  }
 }
 
 resource "aws_db_instance" "primary" {
@@ -43,6 +58,7 @@ resource "aws_db_instance" "primary" {
   db_name                 = "nse"
   username                = "nse"
   password                = random_password.db.result
+  storage_encrypted       = true
   db_subnet_group_name    = aws_db_subnet_group.this.name
   vpc_security_group_ids  = var.security_group_ids
   parameter_group_name    = aws_db_parameter_group.this.name

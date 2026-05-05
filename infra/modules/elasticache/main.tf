@@ -3,7 +3,10 @@
 variable "name"               { type = string }
 variable "subnet_ids"         { type = list(string) }
 variable "security_group_ids" { type = list(string) }
-variable "node_type"          { type = string ; default = "cache.t3.small" }
+variable "node_type" {
+  type    = string
+  default = "cache.t3.small"
+}
 
 resource "aws_elasticache_subnet_group" "this" {
   name       = "${var.name}-redis"
@@ -13,7 +16,10 @@ resource "aws_elasticache_subnet_group" "this" {
 resource "aws_elasticache_parameter_group" "this" {
   name   = "${var.name}-redis7"
   family = "redis7"
-  parameter { name = "maxmemory-policy"; value = "allkeys-lru" }
+  parameter {
+    name  = "maxmemory-policy"
+    value = "allkeys-lru"
+  }
 }
 
 resource "aws_elasticache_replication_group" "this" {

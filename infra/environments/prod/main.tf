@@ -20,8 +20,14 @@ variable "domain"             { type = string }
 variable "cloudflare_zone_id" { type = string }
 variable "image_tag"          { type = string }   # git SHA, set by CI
 variable "monthly_budget"     { type = number }
-variable "pagerduty_endpoint" { type = string ; default = "" }
-variable "slack_endpoint"     { type = string ; default = "" }
+variable "pagerduty_endpoint" {
+  type    = string
+  default = ""
+}
+variable "slack_endpoint" {
+  type    = string
+  default = ""
+}
 
 data "aws_ecr_repository" "web"      { name = "nse-web" }
 data "aws_ecr_repository" "frontend" { name = "nse-frontend" }

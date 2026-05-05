@@ -35,7 +35,10 @@ resource "aws_s3_bucket_lifecycle_configuration" "media" {
   rule {
     id     = "intelligent-tiering"
     status = "Enabled"
-    transition { days = 30; storage_class = "INTELLIGENT_TIERING" }
+    transition {
+      days          = 30
+      storage_class = "INTELLIGENT_TIERING"
+    }
     abort_incomplete_multipart_upload { days_after_initiation = 7 }
   }
 }
